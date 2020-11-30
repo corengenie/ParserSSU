@@ -1,11 +1,3 @@
-'''
-
-
-Trying to commit
-
-
-'''
-
 from bs4 import BeautifulSoup # парсинг HTML
 import datetime  # получение дня недели
 import requests # получение страницы с расписанием и HTML
