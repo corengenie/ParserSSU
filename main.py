@@ -1,20 +1,27 @@
-from bs4 import BeautifulSoup # парсинг HTML
+from bs4 import BeautifulSoup  # парсинг HTML
 import datetime  # получение дня недели
-import requests # получение страницы с расписанием и HTML
-import re # регулярные выражения
+import requests  # получение страницы с расписанием и HTML
+import re  # регулярные выражения
 
 
 class GroupError(Exception):
-    # исключение для обработки номера группы
+    """
+    Исключение для обработки номера группы
+    """
     def __init__(self, text):
         self.txt = text
 
 
 class Parser():
     @staticmethod
-    def get_bs(group_number): # получает объект BS4, содержащий страницу с расписанием "group_number" группы
+    def get_bs(group_number: str) -> BeautifulSoup() or None:
+        """
+        Создает объект bs4 для дальнейшего парсинга
 
-        # изменяет номер группы для корректного получения расписания у совмещённых групп
+        :param group_number: номер группы
+        :return: объект bs4
+        """
+        # изменяем номер группы для корректного получения расписания у совмещённых групп
         if group_number in ("331", "332"):
             group_number = "331%2B332"
         elif group_number in ("341", "342"):
@@ -23,6 +30,7 @@ class Parser():
             group_number = "531%2B532"
         bs_ = None
         # обработка исключений при получении страницы и ее html кода
+
         # возвращает ошибку, когда происходит редирект на страницу со списком факультетов
         # т.к. неправильно указан номер группы
         url = "https://www.sgu.ru/schedule/knt/do/" + group_number
@@ -39,10 +47,15 @@ class Parser():
                 print(e)
         return bs_
 
-    def get_schedule(self, bs_obj):
-        # получает список пар по строчкам, убирает html тэги и прочий мусор.
-        # Так же убирает числитель, если неделя - знаменатель и наоборот.
-        # возвращает ошибку, если bs_obj - пустой
+    def get_schedule(self, bs_obj: BeautifulSoup) -> list or None:
+        """
+        Получает список пар по строчкам, убирает html тэги и прочий мусор.
+        Так же убирает числитель, если неделя - знаменатель и наоборот.
+        Возвращает ошибку, если bs_obj - пустой
+
+        :param bs_obj: объект из функции get_bs
+        :return: список строк - названий пар или None при ошибке
+        """
         schedule_ = []
         week = self.get_date()[1] % 2
         try:
@@ -58,8 +71,10 @@ class Parser():
                 schedule_.append(el)
         except AttributeError:
             print('Error: Пустой файл bs4')
+            return None
         except Exception as e:
             print(e)
+            return None
         return schedule_
 
     def get_day_schedule(self, _schedule, index):
@@ -68,9 +83,9 @@ class Parser():
         day_schedule_ = []
         for i in range(0, 7):
             if index is True:
-                el = str(i + 1) + ') ' + _schedule[i*6 + day] # с индексом
+                el = str(i + 1) + ') ' + _schedule[i * 6 + day]  # с индексом
             else:
-                el = _schedule[i * 6 + day] # без индекса в начале
+                el = _schedule[i * 6 + day]  # без индекса в начале
             day_schedule_.append(el)
         return day_schedule_
 
